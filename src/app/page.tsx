@@ -34,7 +34,7 @@ const Home: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto mt-10">
       <ul className="flex flex-col gap-5">
-        {posts?.map((post: MicroCmsPost) => (
+        {posts.map((post) => (
           <li key={post.id} className="border border-gray-300 p-4">
             <Link href={`posts/${post.id}`}>
               <div>
