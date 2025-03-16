@@ -1,30 +1,32 @@
 "use client";
 
-import { Post, PostResponse } from "@/app/_types/Post";
+import { MicroCmsPost } from "@/app/_types/MicroCmsPost";
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const PostDetail = ({ params }: { params: { id: string } }) => {
-  const [post, setPost] = useState<Post>();
+  const [post, setPost] = useState<MicroCmsPost | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const fetchData = useCallback(async () => {
-    try {
-      const res = await fetch(
-        `https://1hmfpsvto6.execute-api.ap-northeast-1.amazonaws.com/dev/posts/${params.id}`
-      );
-      const data = (await res.json()) as PostResponse;
-      setPost(data.post);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [params.id]);
-
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    const fetcher = async () => {
+      setIsLoading(true);
+      const res = await fetch(
+        `https://058kjqhvdy.microcms.io/api/v1/posts/${params.id}`,
+        {
+          headers: {
+            "X-MICROCMS-API-KEY": process.env
+              .NEXT_PUBLIC_MICROCMS_API_KEY as string,
+          },
+        }
+      );
+      const data = await res.json();
+      setPost(data);
+      setIsLoading(false);
+    };
+
+    fetcher();
+  }, [params.id]);
 
   if (isLoading) return <div>読み込み中...</div>;
   if (!post) return <div>記事が見つかりません</div>;
@@ -34,7 +36,7 @@ const PostDetail = ({ params }: { params: { id: string } }) => {
       <div>
         <div>
           <Image
-            src={post.thumbnailUrl}
+            src={post.thumbnail.url}
             alt={post.title}
             height={400}
             width={800}
@@ -52,15 +54,13 @@ const PostDetail = ({ params }: { params: { id: string } }) => {
                     key={index}
                     className="border border-blue-500 p-1 text-sm rounded text-blue-500"
                   >
-                    {category}
+                    {category.name}
                   </div>
                 ))}
               </div>
             </div>
           </div>
-          <p className="text-2xl text-left mt-4 text-slate-900">
-            {post.title}
-          </p>
+          <p className="text-2xl text-left mt-4 text-slate-900">{post.title}</p>
           <div className="mt-4 text-left text-slate-700">
             <div dangerouslySetInnerHTML={{ __html: post.content }} />
           </div>
