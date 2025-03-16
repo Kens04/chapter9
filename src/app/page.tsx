@@ -2,19 +2,22 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Post, PostsResponse } from "./_types/Post";
+import { MicroCmsPost } from "@/app/_types/MicroCmsPost";
 
 const Home: React.FC = () => {
-  const [posts, setPosts] = useState<Post[]>();
+  const [posts, setPosts] = useState<MicroCmsPost[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchData = async () => {
     try {
-      const res = await fetch(
-        "https://1hmfpsvto6.execute-api.ap-northeast-1.amazonaws.com/dev/posts"
-      );
-      const data = (await res.json()) as PostsResponse;
-      setPosts(data.posts);
+      const res = await fetch("https://058kjqhvdy.microcms.io/api/v1/posts", {
+        headers: {
+          "X-MICROCMS-API-KEY": process.env
+            .NEXT_PUBLIC_MICROCMS_API_KEY as string,
+        },
+      });
+      const { contents } = await res.json();
+      setPosts(contents);
     } catch (error) {
       console.log(error);
     } finally {
@@ -31,7 +34,7 @@ const Home: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto mt-10">
       <ul className="flex flex-col gap-5">
-        {posts?.map((post: Post) => (
+        {posts?.map((post: MicroCmsPost) => (
           <li key={post.id} className="border border-gray-300 p-4">
             <Link href={`posts/${post.id}`}>
               <div>
@@ -47,7 +50,7 @@ const Home: React.FC = () => {
                             key={index}
                             className="border border-blue-500 p-1 text-sm rounded text-blue-500"
                           >
-                            {category}
+                            {category.name}
                           </div>
                         ))}
                       </div>
